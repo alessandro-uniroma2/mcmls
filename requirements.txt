@@ -1,0 +1,8 @@
+scikit-learn
+xgboost
+lightgbm
+split-folders
+matplotlib
+seaborn
+tensorflow
+jupyter

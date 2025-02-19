@@ -1,0 +1,27 @@
+# Remove raw dataset
+data
+# Remove Archives momentarily for LFS quota issue
+archive
+# Remote split directory (directory where dataset are divided into TRAIN / VALIDATION)
+split
+
+# If you dont't want to upload results
+# results
+
+# Serialized models are heavy
+models
+
+# Remove Python cache
+__pycache__
+
+# Remove PyCharm project files
+.idea
+
+# Remove cache info in notebooks
+.ipynb_checkpoints/
+
+# Remove 7z files (backup data)
+*.7z
+
+# Remove image data for paper
+paper/images
