@@ -3,7 +3,7 @@ from sklearn.ensemble import AdaBoostClassifier
 from models.imodel import IModel
 
 
-class AdaBoostModel(IModel):
+class AbModel(IModel):
     def __init__(self):
         kwargs = {
             "n_estimators": 50,

@@ -8,7 +8,7 @@ Malware binaries are transformed into **grayscale or RGB byteplot images**, whic
 
 The following **machine learning models** are included in this study:
 
-- **Linear Regression**
+- **Logistic Regression**
 - **Linear Discriminant Analysis (LDA)**
 - **Quadratic Discriminant Analysis (QDA)**
 - **Decision Trees**

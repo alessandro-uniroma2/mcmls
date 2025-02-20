@@ -151,6 +151,7 @@ def generate_notebook_from_files(notebook_name):
 
     all_files = project_root.rglob("*.py")
     codes = {}
+    imports = []
 
     for file in all_files:
         try:
@@ -270,29 +271,25 @@ def main():
             mcmls = McMls(results_dir="results")
             model_under_test = ModelFactory.list_all()
             if args.model is not None:
-                model_under_test = args.model
+                model_under_test = [args.model]
             dataset_under_test = mcmls.loader.list_datasets()
             if args.dataset is not None:
-                dataset_under_test = args.dataset
+                dataset_under_test = [args.dataset]
 
             if args.command == "run":
                 # Load testing data
-                mcmls.evaluate_all_models()
+                mcmls.evaluate_subset(model_names=model_under_test, dataset_names=dataset_under_test)
                 mcmls.save_results()
             elif args.command == "train":
-                mcmls.evaluate_all_models()
+                mcmls.evaluate_subset(model_names=model_under_test, dataset_names=dataset_under_test)
                 mcmls.save_results()
             elif args.command == "compare":
                 mcmls.load_results()
                 mcmls.summarize_results()
 
-                # Compare models for a specific dataset
-                for d in mcmls.loader.list_datasets():
-                    mcmls.compare_models(d)
-
-                # Compare datasets for a specific model
                 for model in mcmls.list_models():
-                    mcmls.compare_datasets(model)
+                    print("Confusion Matrix for Model:", model)
+                    mcmls.plot_confusion_matrices(model)
 
     elif args.command == "list":
             print("(*) Available models:")

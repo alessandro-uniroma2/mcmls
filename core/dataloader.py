@@ -8,6 +8,7 @@ import splitfolders
 
 from core.datatypes import MalwareImages
 from utils.common import get_project_root
+from utils.downloader import Downloader
 
 
 class DatasetLoader:
@@ -19,7 +20,7 @@ class DatasetLoader:
         cf = config_folder.joinpath("config.ini")
         self.config = configparser.ConfigParser(allow_no_value=True, interpolation=configparser.ExtendedInterpolation())
         self.config.read(str(cf))
-        self.project_root = self.project_root.joinpath("vitaminc")
+        self.project_root = self.project_root.joinpath("mcmls")
         dataset_cf = self.project_root.joinpath(self.config.get("DATASET", "config")).resolve()
         self.dataset_config = {}
         self.training_datasets: Dict[str, MalwareImages] = dict()
@@ -29,6 +30,8 @@ class DatasetLoader:
             datasets = json.load(_in)
             for dataset in datasets.get("datasets"):
                 self.dataset_config[dataset.get("name")] = dataset
+
+        self.downloader = Downloader()
 
         self.__base_data_directory = self.project_root.joinpath("data")
         self.__base_split_directory = self.project_root.joinpath("split")
@@ -68,6 +71,11 @@ class DatasetLoader:
             raise ValueError(f"Dataset {dataset_name} not supported")
         classes = self.dataset_config.get(dataset_name, {}).get("classes")
         return int(classes)
+
+    def get_dataset_class_names(self, dataset_name: str) -> List[str]:
+        if dataset_name not in self.list_datasets():
+            raise ValueError(f"Dataset {dataset_name} not supported")
+        return self.training_datasets.get(dataset_name).class_names
 
     def get_dataset_options(self, dataset_name: str) -> dict:
         if dataset_name not in self.list_datasets():
@@ -143,3 +151,5 @@ class DatasetLoader:
         if dataset is not None:
             dataset.plot_class_distribution()
             dataset.malware_samples()
+        else:
+            print(f"[-] Dataset {dataset_name} not loaded")

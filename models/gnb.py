@@ -3,7 +3,7 @@ from sklearn.naive_bayes import GaussianNB
 from models.imodel import IModel
 
 
-class NaiveBayesModel(IModel):
+class GnbModel(IModel):
     def __init__(self):
         kwargs = {}
         super().__init__(**kwargs)

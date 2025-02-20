@@ -125,13 +125,25 @@ class McMls:
 
     def evaluate_all_models(self):
         """Evaluate all models on all datasets."""
+        for model_name in self.list_models():
+            self.evaluate_model(model_name)
+
+    def evaluate_model(self, model_name):
         for dataset in self.loader.list_datasets():
-            for model_name in self.list_models():
+            try:
+                print(f"Training {model_name} on {dataset}...")
+                self.train_and_evaluate(model_name, dataset)
+            except Exception as e:
+                print(f"Exception occurred training {model_name} on {dataset}: {e}")
+
+    def evaluate_subset(self, model_names: list, dataset_names: list):
+        for model_name in model_names:
+            for dataset_name in dataset_names:
                 try:
-                    print(f"Training {model_name} on {dataset}...")
-                    self.train_and_evaluate(model_name, dataset)
+                    print(f"Training {model_name} on {dataset_name}...")
+                    self.train_and_evaluate(model_name, dataset_name)
                 except Exception as e:
-                    print(f"Exception occurred training {model_name} on {dataset}: {e}")
+                    print(f"Exception occurred training {model_name} on {dataset_name}: {e}")
 
     def save_results(self):
         """Save all evaluation results as JSON."""
@@ -207,14 +219,17 @@ class McMls:
         plt.tight_layout()
         plt.show()
 
-    def plot_confusion_matrix_from_results(self, dataset_name: str, model_name: str, class_names: List[str]):
+    def plot_confusion_matrices(self, model_name: str):
+        for dataset_name in self.loader.list_datasets():
+            self.plot_confusion_matrix_from_results(dataset_name, model_name)
+
+    def plot_confusion_matrix_from_results(self, dataset_name: str, model_name: str):
         """
         Plot the confusion matrix for a specific dataset and model using self.results.
 
         Args:
             dataset_name (str): Name of the dataset.
             model_name (str): Name of the model.
-            class_names (List[str]): List of class names.
         """
         if dataset_name not in self.results:
             print(f"Dataset '{dataset_name}' not found in results.")
@@ -222,6 +237,8 @@ class McMls:
         if model_name not in self.results[dataset_name]:
             print(f"Model '{model_name}' not found for dataset '{dataset_name}'.")
             return
+        # Retrieve class names
+        class_names = self.loader.get_dataset_class_names(dataset_name)
 
         # Retrieve confusion matrix
         conf_matrix = self.results[dataset_name][model_name]["confusion_matrix"]
