@@ -68,7 +68,7 @@ def fetch_datasets(config_file_path):
     with open(config_file_path, 'r') as f:
         config = json.load(f)
 
-    data_dir = get_project_root().joinpath("archive")
+    data_dir = get_project_root().joinpath("mcmls", "archive")
     data_dir.mkdir(exist_ok=True)
 
     for dataset in config.get('datasets', []):
@@ -76,7 +76,7 @@ def fetch_datasets(config_file_path):
         dataset_path = Path(dataset.get("archive"))
         name = dataset.get("name")
         if not dataset_path.exists():
-            print(f"Downloading {name}...")
+            print(f"Downloading {name} from {url}...")
             downloader = Downloader(download_directory=str(data_dir))
             downloader.download(url)
         else:
@@ -240,12 +240,13 @@ def parse_args() -> argparse.Namespace:
 
     model_subparsers.add_parser('list', help="List available models")
 
-    return parser.parse_args()
+    return parser
 
 
 def main():
-    args = parse_args()
-
+    parser = parse_args()
+    args = parser.parse_args()
+    
     if args.action == "dataset":
         if args.command == "fetch":
             fetch_datasets(args.config)
@@ -291,10 +292,12 @@ def main():
                     print("Confusion Matrix for Model:", model)
                     mcmls.plot_confusion_matrices(model)
 
-    elif args.command == "list":
+    elif args.action == "list":
             print("(*) Available models:")
             for model in ModelFactory.list_all():
                 print(" - " + model)
+    else:
+        parser.print_help()
 
 
 if __name__ == "__main__":
