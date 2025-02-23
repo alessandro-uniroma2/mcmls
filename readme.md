@@ -217,5 +217,5 @@ This project is licensed under the **MIT License**. See the [LICENSE](LICENSE) f
 
 ## References
 
-* [Pattern Recognition Techniques for Malware Detection](https://arxiv.org/abs/2202.01243)
-* [Classic vs Deep Learning for Malware Image Classification](https://arxiv.org/abs/2301.01827)
+* [Pattern Recognition Techniques for Malware Detection](https://www.researchgate.net/publication/220798443_Pattern_Recognition_Techniques_for_the_Classification_of_Malware_Packers)
+* [Classic vs Deep Learning for Malware Image Classification](https://arxiv.org/pdf/1809.05889)
