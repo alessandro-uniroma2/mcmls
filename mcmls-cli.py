@@ -229,6 +229,7 @@ def parse_args() -> argparse.Namespace:
     model_train_parser = model_subparsers.add_parser('train', help="Train model with specific dataset or on all datasets")
     model_train_parser.add_argument("-m", "--model", nargs='+', action='extend', choices=ModelFactory.list_all() + [None], help="Model to run", default=None)
     model_train_parser.add_argument("-d", "--dataset", nargs='+', action='extend', help="Dataset to train with", default=None)
+    model_train_parser.add_argument("-f", "--force", action='store_true', help="Force retraining", default=False)
 
     model_run_parser = model_subparsers.add_parser('run', help="Run predictions and show benchmarks")
     model_run_parser.add_argument("-m", "--model", nargs='+', action='extend', help="Model to run", choices=ModelFactory.list_all() + [None], default=None)
@@ -270,21 +271,23 @@ def main():
 
         if args.command in ["train", "run", "compare"]:
             mcmls = McMls(results_dir="results")
+            mcmls.loader.split_all_dataset()
             model_under_test = ModelFactory.list_all()
             if args.model is not None:
-                model_under_test = [args.model]
+                model_under_test = args.model
             dataset_under_test = mcmls.loader.list_datasets()
             if args.dataset is not None:
-                dataset_under_test = [args.dataset]
+                dataset_under_test = args.dataset
 
             if args.command == "run":
                 # Load testing data
-                mcmls.evaluate_subset(model_names=model_under_test, dataset_names=dataset_under_test)
+                mcmls.evaluate_subset(model_names=model_under_test, dataset_names=dataset_under_test, force_retrain=args.force)
                 mcmls.save_results()
             elif args.command == "train":
-                mcmls.evaluate_subset(model_names=model_under_test, dataset_names=dataset_under_test)
+                mcmls.evaluate_subset(model_names=model_under_test, dataset_names=dataset_under_test, force_retrain=args.force)
                 mcmls.save_results()
             elif args.command == "compare":
+                mcmls.loader.load_datasets(split=True)
                 mcmls.load_results()
                 mcmls.summarize_results()
 

@@ -12,4 +12,4 @@ class LrModel(IModel):
         self.name = "Logistic Regression"
 
     def create_model(self, preprocess=False):
-        self.model = LogisticRegression(multi_class=self.multi_class, solver=self.solver)
+        self.model = LogisticRegression(multi_class=self.multi_class, solver=self.solver, verbose=True)

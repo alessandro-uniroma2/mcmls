@@ -15,13 +15,18 @@ class MalwareImages:
         self.class_distribution = dict()
         self.rows = n
         self.columns = n
-        self.class_names = []
-        self.__get_class_names()
+        self.__class_names = []
 
-    def __get_class_names(self):
+    @property
+    def class_names(self):
+        if len(self.__class_names) == 0:
+            self.lazy_load_class_names()
+        return self.__class_names
+
+    def lazy_load_class_names(self):
         for malware_type in os.listdir(self.data_directory):
-            self.class_names.append(malware_type)
-        self.class_names = list(set(self.class_names))
+            self.__class_names.append(malware_type)
+        self.__class_names = list(set(self.__class_names))
 
     # Computation of the class distribution of the dataset.
     def __compute_class_distribution(self):

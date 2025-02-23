@@ -12,7 +12,7 @@ The following **machine learning models** are included in this study:
 - **Linear Discriminant Analysis (LDA)**
 - **Quadratic Discriminant Analysis (QDA)**
 - **Decision Trees**
-- **AdaBoost**
+- **Decision Tress (shallow) + AdaBoost**
 - **Support Vector Machine (SVM)**
 - **Gaussian Naïve Bayes**
 

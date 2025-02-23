@@ -8,7 +8,6 @@ import splitfolders
 
 from core.datatypes import MalwareImages
 from utils.common import get_project_root
-from utils.downloader import Downloader
 
 
 class DatasetLoader:
@@ -30,8 +29,6 @@ class DatasetLoader:
             datasets = json.load(_in)
             for dataset in datasets.get("datasets"):
                 self.dataset_config[dataset.get("name")] = dataset
-
-        self.downloader = Downloader()
 
         self.__base_data_directory = self.project_root.joinpath("data")
         self.__base_split_directory = self.project_root.joinpath("split")
@@ -135,6 +132,7 @@ class DatasetLoader:
             data_dir=str(self.get_training_data_dir(dataset_name, split=split)),
             n=int(self.dataset_config.get(dataset_name, {}).get("d"))
         )
+        self.training_datasets[dataset_name].lazy_load_class_names()
 
     def load_datasets(self, split: bool):
         for dataset_name in self.list_datasets():

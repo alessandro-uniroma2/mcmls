@@ -92,9 +92,13 @@ class IModel(ABC):
     def create_model(self, preprocess=True):
         pass
 
+    def preprocess(self, x, training=False):
+        return x
+
     # Training the model with Early Stopping Criterion
     # on Validation Loss.
     def fit(self, X, y):
+        X = self.preprocess(X, training=True)
         self.model.fit(X, y)
 
     def smote(self, x_train, y_train) -> tuple:
@@ -103,6 +107,7 @@ class IModel(ABC):
         return x_train_balanced, y_train_balanced
 
     def predict(self, X):
+        X = self.preprocess(X, training=False)
         return self.model.predict(X)
 
     def save_inner_model(self, path: Path):

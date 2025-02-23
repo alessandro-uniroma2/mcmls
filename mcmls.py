@@ -33,6 +33,7 @@ class McMls:
         self.results_dir.mkdir(parents=True, exist_ok=True)
 
         self.results = {dataset: {} for dataset in self.loader.list_datasets()}
+        self.load_results()
 
     def list_models(self) -> List[str]:
         """Return a list of supported models."""
@@ -123,27 +124,43 @@ class McMls:
             "confusion_matrix": conf_matrix.tolist(),  # Convert to list for JSON serialization
         }
 
-    def evaluate_all_models(self):
+    def evaluate_all_models(self, early_save=True, force_retrain=False):
         """Evaluate all models on all datasets."""
         for model_name in self.list_models():
-            self.evaluate_model(model_name)
+            self.evaluate_model(model_name, early_save=early_save, force_retrain=force_retrain)
 
-    def evaluate_model(self, model_name):
+    def evaluate_model(self, model_name, early_save=True, force_retrain=False):
         for dataset in self.loader.list_datasets():
             try:
                 print(f"Training {model_name} on {dataset}...")
+                if not force_retrain and self.check_results(dataset, model_name):
+                    print(f"Skipping evaluation of {model_name} on {dataset}")
+                    continue
                 self.train_and_evaluate(model_name, dataset)
+                if early_save:
+                    self.save_results()
             except Exception as e:
                 print(f"Exception occurred training {model_name} on {dataset}: {e}")
 
-    def evaluate_subset(self, model_names: list, dataset_names: list):
+    def evaluate_subset(self, model_names: list, dataset_names: list, early_save=True, force_retrain=False):
         for model_name in model_names:
             for dataset_name in dataset_names:
                 try:
                     print(f"Training {model_name} on {dataset_name}...")
+                    if not force_retrain and self.check_results(dataset_name, model_name):
+                        print(f"Skipping evaluation of {model_name} on {dataset_name}")
+                        continue
                     self.train_and_evaluate(model_name, dataset_name)
+                    if early_save:
+                        self.save_results()
                 except Exception as e:
                     print(f"Exception occurred training {model_name} on {dataset_name}: {e}")
+
+    def check_results(self, dataset_name: str, model_name: str) -> bool:
+        return self.results.get(dataset_name, {}).get(model_name, None) is not None
+        # Following checks for the file to  but it might not be enough
+        # rpath = self.results_dir.joinpath(dataset_name).joinpath(f"{model_name}_results.json")
+        # return rpath.is_file()
 
     def save_results(self):
         """Save all evaluation results as JSON."""
@@ -153,8 +170,11 @@ class McMls:
 
             for model_name, model_results in dataset_results.items():
                 model_path = dataset_dir.joinpath(f"{model_name}_results.json")
-                with open(model_path, "w") as f:
-                    json.dump(model_results, f)
+                try:
+                    with open(model_path, "w") as f:
+                        json.dump(model_results, f)
+                except Exception as e:
+                    print(f"Exception occurred saving results to {model_path}: {e}")
 
     def load_results(self):
         """Load previously saved results into memory."""
@@ -165,8 +185,14 @@ class McMls:
 
             for model_file in dataset_dir.glob("*_results.json"):
                 model_name = model_file.stem.replace("_results", "")
+                if model_name not in self.list_models():
+                    # Prevent loading of extraneous data
+                    continue
                 with open(model_file, "r") as f:
-                    self.results[dataset][model_name] = json.load(f)
+                    try:
+                        self.results[dataset][model_name] = json.load(f)
+                    except:
+                        continue
 
     def summarize_results(self):
         """
