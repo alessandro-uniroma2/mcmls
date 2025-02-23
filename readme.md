@@ -2,7 +2,7 @@
 
 ## Project Overview
 
-The **mcmls** (read *m-seemless*) project explores the effectiveness of **classic machine learning methods** for classifying malware based on their **byteplot image representations**. Unlike deep learning approaches that rely on complex neural networks, **mcmls** applies well-established **non-deep learning techniques** to analyze the visual structure of malware samples.
+The **mcmls** (read *m-seamless*) project explores the effectiveness of **classic machine learning methods** for classifying malware based on their **byteplot image representations**. Unlike deep learning approaches that rely on complex neural networks, **mcmls** applies well-established **non-deep learning techniques** to analyze the visual structure of malware samples.
 
 Malware binaries are transformed into **grayscale or RGB byteplot images**, which serve as inputs for a variety of classical machine learning models. The goal is to determine whether traditional statistical learning techniques can achieve competitive performance in malware classification compared to deep learning-based solutions.
 
