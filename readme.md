@@ -1,4 +1,4 @@
-# mcmls: Malware Classifier using Classic Machine Learning Strategies
+# mcmls: Malware Classification using Classic Machine Learning Strategies
 
 ## Project Overview
 
