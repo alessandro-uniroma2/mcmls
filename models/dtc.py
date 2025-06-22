@@ -4,12 +4,13 @@ from models.imodel import IModel
 
 
 class DtcModel(IModel):
-    def __init__(self):
-        kwargs = {
+    def __init__(self, **kwargs):
+        _kwargs = {
             "criterion": "gini",
             "splitter": "best"
         }
-        super().__init__(**kwargs)
+        _kwargs = {**_kwargs, **kwargs}
+        super().__init__(**_kwargs)
         self.name = "Decision Tree Classifier"
 
     def create_model(self, preprocess=False):

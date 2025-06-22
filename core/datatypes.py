@@ -67,4 +67,6 @@ class MalwareImages:
 
         fig.suptitle("Sample for Malware types")
         plt.subplots_adjust(wspace=0.9)
-        plt.show()
+        plt.savefig("Sample malware images.png",  dpi=300, bbox_inches='tight')
+        plt.close()
+

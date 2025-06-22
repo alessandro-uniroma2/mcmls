@@ -117,3 +117,15 @@ class ImageProcessor:
         x_test = scaler.transform(x_test)
 
         return x_train, y_train, x_val, y_val, x_test, y_test
+
+    def get_image_numpy(self):
+        """
+        Returns non-flattened (N, H, W, C) normalized image arrays and integer labels.
+        Useful for visual or CNN-compatible preprocessing.
+        """
+        train_images, val_images, test_images = self.get_images()
+        x_train, y_train = self.generator_to_numpy(train_images)
+        x_val, y_val = self.generator_to_numpy(val_images)
+        x_test, y_test = self.generator_to_numpy(test_images)
+        return x_train, y_train, x_val, y_val, x_test, y_test
+

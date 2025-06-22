@@ -201,6 +201,181 @@ The effectiveness of **classic ML models** is assessed through multiple metrics.
 - **Hybrid Models**: Combine classical ML with deep learning techniques.
 - **Dataset Expansion**: Include more diverse malware families.
 
+
+## Technicalities
+
+## 📚 Preprocessing Strategies for Image-Based Malware Classification
+
+When applying classical machine learning models to image classification tasks such as malware detection from byteplot images, preprocessing is **essential**. Raw pixel inputs are typically too high-dimensional, noisy, and not suitable for most traditional algorithms. Below is a curated collection of **feature extraction and dimensionality reduction techniques**, along with when and why to use each.
+
+---
+
+### 🔍 `FeatureExtract` Strategies
+
+---
+
+### 🟦 HOG (Histogram of Oriented Gradients)
+
+**What it is:**  
+HOG describes the local shape of objects by computing gradient orientation histograms. It encodes **edges and object structure**, making it effective for shape-based analysis.
+
+**How it works:**
+1. Divide the image into small cells.
+2. For each cell, compute gradients and orientations.
+3. Build histograms of gradient directions.
+4. Normalize across blocks of cells for illumination invariance.
+
+**Feature Output:**  
+A long vector of histogram values, e.g., ~3k–6k dimensions for medium-size images.
+
+**Best For Models:**  
+- ✅ Logistic Regression
+- ✅ SVM
+- ✅ Random Forest
+- ⚠️ Naive Bayes (high dim)
+
+**When to Use:**  
+When malware families differ in shape patterns (byteplot texture), not color or absolute positions.
+
+---
+
+### 🟦 SIFT (Scale-Invariant Feature Transform)
+
+**What it is:**  
+SIFT detects **keypoints and descriptors** in an image that are invariant to scale, rotation, and minor affine changes.
+
+**How it works:**
+1. Detect blobs/edges across multiple scales.
+2. Extract 128-dim descriptor per keypoint.
+3. Truncate/pad to fixed number (e.g., 100 keypoints × 128 = 12,800 features).
+
+**Feature Output:**  
+Fixed-size vector per image (e.g., 12,800).
+
+**Best For Models:**  
+- ✅ SVM
+- ✅ Random Forest
+- ✅ Gradient Boosting
+- ⚠️ Naive Bayes (noisy, continuous)
+
+**When to Use:**  
+When malware images have localized but consistent structures (e.g., small repeating motifs).
+
+---
+
+### 🟦 GLCM (Gray-Level Co-Occurrence Matrix)
+
+**What it is:**  
+GLCM computes **second-order texture statistics**, capturing how often pixel values co-occur at specific distances and angles.
+
+**How it works:**
+1. Convert to grayscale.
+2. Count co-occurrence of intensity pairs in a matrix.
+3. Derive features: contrast, correlation, homogeneity, energy, dissimilarity, ASM.
+
+**Feature Output:**  
+6 texture values per image.
+
+**Best For Models:**  
+- ✅ LDA / QDA
+- ✅ Logistic Regression
+- ✅ Decision Trees
+- ✅ Naive Bayes
+
+**When to Use:**  
+When interested in statistical texture — e.g., malware families with different spatial uniformity.
+
+---
+
+### 🟦 Histogram (Color Histogram)
+
+**What it is:**  
+A simple, intuitive feature: **counts of pixel intensities** in each channel (grayscale or RGB).
+
+**How it works:**
+1. For each color channel, build histogram of intensity values.
+2. Normalize and flatten.
+
+**Feature Output:**  
+E.g., 32 bins per channel × 3 channels = 96 features.
+
+**Best For Models:**  
+- ✅ Logistic Regression
+- ✅ Naive Bayes
+- ✅ Decision Tree
+- ⚠️ SVM (needs scaling)
+
+**When to Use:**  
+When color distribution or intensity variance is class-discriminative.
+
+---
+
+### 🟦 ResNet Embeddings
+
+**What it is:**  
+Use a pre-trained **deep CNN** (ResNet50) to extract high-level **semantic features**. No fine-tuning; only forward pass.
+
+**How it works:**
+1. Resize input to 224×224.
+2. Forward through ResNet to obtain penultimate-layer (2048D) vector.
+3. Normalize and feed to classic ML.
+
+**Feature Output:**  
+2048-dimensional float vector.
+
+**Best For Models:**  
+- ✅ Logistic Regression
+- ✅ SVM
+- ✅ Random Forest
+- ✅ Gradient Boosting
+
+**When to Use:**  
+When you need deep semantic information without training your own CNN.
+
+---
+
+### 🟩 `DimReduce` Strategies
+
+---
+
+### 🟩 PCA (Principal Component Analysis)
+
+**What it is:**  
+PCA reduces the dimensionality of input data while retaining **most of the variance**.
+
+**How it works:**
+1. Computes eigenvectors/eigenvalues of the data covariance matrix.
+2. Projects data into top `n_components` directions (principal components).
+
+**Feature Output:**  
+Typically 50–300 dimensions, tunable.
+
+**Best For Models:**  
+- ✅ All classic models benefit
+- Especially:
+  - ✅ LDA/QDA
+  - ✅ Naive Bayes
+  - ✅ Logistic Regression
+
+**When to Use:**  
+When the raw or extracted features are too high-dimensional and potentially collinear or sparse.
+
+---
+
+## 🤝 Model–Preprocessing Pairing Guide
+
+| Model              | HOG | SIFT | GLCM | Hist | ResNet | PCA |
+|-------------------|-----|------|------|------|--------|-----|
+| Logistic Regression | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| LDA/QDA             | ⚠️ | ⚠️ | ✅ | ✅ | ⚠️ | ✅ |
+| SVM                 | ✅ | ✅ | ⚠️ | ⚠️ | ✅ | ✅ |
+| Decision Tree       | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Random Forest       | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Naive Bayes         | ⚠️ | ⚠️ | ✅ | ✅ | ⚠️ | ✅ |
+| AdaBoost            | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+
+⚠️ = Only with dimension reduction / scaling
+
 ---
 
 ## Contributing

@@ -4,10 +4,12 @@ import hashlib
 import json
 import shutil
 import subprocess
+from argparse import ArgumentParser
 from pathlib import Path
 from datetime import datetime
 import zipfile
 
+from factory.features import FeatureProcessorFactory
 from factory.models import ModelFactory
 from mcmls import McMls
 from utils.common import get_project_root
@@ -184,7 +186,7 @@ def install_requirements():
     subprocess.run(["pip", "install", "-r", "requirements.txt"])
 
 
-def parse_args() -> argparse.Namespace:
+def parse_args() -> ArgumentParser:
     # Argument parser setup
     parser = argparse.ArgumentParser(description="Malware Classifier Project Utility Script")
     subparsers = parser.add_subparsers(dest="action", help="Actions to perform")
@@ -226,18 +228,39 @@ def parse_args() -> argparse.Namespace:
     model_parser = subparsers.add_parser('model', help="Model related actions")
     model_subparsers = model_parser.add_subparsers(dest="command", required=True)
 
-    model_train_parser = model_subparsers.add_parser('train', help="Train model with specific dataset or on all datasets")
-    model_train_parser.add_argument("-m", "--model", nargs='+', action='extend', choices=ModelFactory.list_all() + [None], help="Model to run", default=None)
-    model_train_parser.add_argument("-d", "--dataset", nargs='+', action='extend', help="Dataset to train with", default=None)
-    model_train_parser.add_argument("-f", "--force", action='store_true', help="Force retraining", default=False)
+    model_train_parser = model_subparsers.add_parser('train',
+                                                     help="Train model with specific dataset or on all datasets")
+    model_train_parser.add_argument("-m", "--model", nargs='+', action='extend',
+                                    choices=ModelFactory.list_all() + [None], help="Model to run", default=None)
+    model_train_parser.add_argument("-d", "--dataset", nargs='+', action='extend',
+                                    help="Dataset to train with", default=None)
+    model_train_parser.add_argument("-f", "--force", action='store_true',
+                                    help="Force retraining", default=False)
+    model_train_parser.add_argument("-dr", "--dim-reduction", type=str, choices=FeatureProcessorFactory.list_all_dim_reduction(),
+                                    help="Preprocessing strategies (e.g. PCA)")
+    model_train_parser.add_argument("-fe", "--feature_extraction", type=str, choices=FeatureProcessorFactory.list_all_feature_extract(),
+                                    help="Feature extraction mechanism (e.g. HOG, GLCM, ResNet)")
 
     model_run_parser = model_subparsers.add_parser('run', help="Run predictions and show benchmarks")
-    model_run_parser.add_argument("-m", "--model", nargs='+', action='extend', help="Model to run", choices=ModelFactory.list_all() + [None], default=None)
-    model_run_parser.add_argument("-d", "--dataset", nargs='+', action='extend', help="Dataset to run with", default=None)
+    model_run_parser.add_argument("-m", "--model", nargs='+', action='extend', help="Model to run",
+                                  choices=ModelFactory.list_all() + [None], default=None)
+    model_run_parser.add_argument("-d", "--dataset", nargs='+', action='extend',
+                                  help="Dataset to run with", default=None)
+    model_run_parser.add_argument("-dr", "--dim-reduction", type=str,
+                                    choices=FeatureProcessorFactory.list_all_dim_reduction(),
+                                    help="Preprocessing strategies (e.g. PCA)")
+    model_run_parser.add_argument("-fe", "--feature_extraction", type=str,
+                                    choices=FeatureProcessorFactory.list_all_feature_extract(),
+                                    help="Feature extraction mechanism (e.g. HOG, GLCM, ResNet)")
 
     model_compare_parser = model_subparsers.add_parser('compare', help="Show benchmarks")
-    model_compare_parser.add_argument("-m", "--model", nargs='+', action='extend', help="Model to compare", choices=ModelFactory.list_all() + [None], default=None)
-    model_compare_parser.add_argument("-d", "--dataset", nargs='+', action='extend', help="Dataset to compare on", default=None)
+    model_compare_parser.add_argument("-m", "--model", nargs='+', action='extend', help="Model to compare",
+                                      choices=ModelFactory.list_all() + [None], default=None)
+    model_compare_parser.add_argument("-d", "--dataset", nargs='+', action='extend',
+                                      help="Dataset to compare on", default=None)
+    model_compare_parser.add_argument("-M", "--metric", type=str, default="balanced_accuracy",
+                                      help="Metric to run the comparison against",
+                                      choices=['balanced_accuracy', 'f1_weighted', 'f1_macro', 'roc_auc_ovr_weighted'])
 
     model_subparsers.add_parser('list', help="List available models")
 
@@ -279,17 +302,38 @@ def main():
             if args.dataset is not None:
                 dataset_under_test = args.dataset
 
+            option = None
+            if args.command in ["train", "run"]:
+                from core.features import OpOption
+                if args.strategy and args.mechanism:
+                    option = OpOption(args.strategy, args.mechanism)
+                else:
+                    option = OpOption("raw", "raw")
+
             if args.command == "run":
                 # Load testing data
-                mcmls.evaluate_subset(model_names=model_under_test, dataset_names=dataset_under_test, force_retrain=args.force)
+                mcmls.loader.load_datasets(split=True)
+                mcmls.evaluate_subset(model_names=model_under_test, dataset_names=dataset_under_test, force_retrain=args.force, option=option)
                 mcmls.save_results()
             elif args.command == "train":
-                mcmls.evaluate_subset(model_names=model_under_test, dataset_names=dataset_under_test, force_retrain=args.force)
+                mcmls.loader.load_datasets(split=True)
+                mcmls.evaluate_subset(model_names=model_under_test, dataset_names=dataset_under_test, force_retrain=args.force, option=option)
                 mcmls.save_results()
             elif args.command == "compare":
                 mcmls.loader.load_datasets(split=True)
                 mcmls.load_results()
                 mcmls.summarize_results()
+
+                # Summarize results using balanced accuracy
+                mcmls.summarize_results(metric=args.metric)
+
+                # Compare models for each dataset
+                for d in mcmls.loader.list_datasets():
+                    mcmls.compare_models(d, metric=args.metric)
+
+                # Compare datasets for each model
+                for model in mcmls.list_models():
+                    mcmls.compare_datasets(model, metric=args.metric)
 
                 for model in mcmls.list_models():
                     print("Confusion Matrix for Model:", model)

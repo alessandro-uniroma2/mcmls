@@ -4,12 +4,13 @@ from models.imodel import IModel
 
 
 class LdaModel(IModel):
-    def __init__(self):
-        kwargs = {
+    def __init__(self, **kwargs):
+        _kwargs = {
             "multi_class": "multinomial",
             "solver": "svd"
         }
-        super().__init__(**kwargs)
+        _kwargs = {**_kwargs, **kwargs}
+        super().__init__(**_kwargs)
         self.name = "Linear Discriminant Analysis"
 
     def create_model(self, preprocess=False):

@@ -4,10 +4,11 @@ from models.imodel import IModel
 
 
 class QdaModel(IModel):
-    def __init__(self):
-        kwargs = {
+    def __init__(self, **kwargs):
+        _kwargs = {
         }
-        super().__init__(**kwargs)
+        _kwargs = {**_kwargs, **kwargs}
+        super().__init__(**_kwargs)
         self.name = "Quadratic Discriminant Analysis"
 
     def create_model(self, preprocess=False):
